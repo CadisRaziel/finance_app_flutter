@@ -6,7 +6,8 @@ import 'package:logger/logger.dart';
 
 class SignUpController extends ChangeNotifier {
   final AuthService _authService; //Repare que eu injeto a interface
-  SignUpController(this._authService);
+   final  SecureStorage _secureStorage;
+  SignUpController(this._authService, this._secureStorage);
   var logger = Logger();
 
   SignUpState _state = SignUpInitialState();
@@ -22,7 +23,7 @@ class SignUpController extends ChangeNotifier {
       required String password}) async {
 
 
-    const secureStorage = SecureStorage();
+   
 
 
     _changeState(SignUpLoadingState());
@@ -36,7 +37,7 @@ class SignUpController extends ChangeNotifier {
 
       //salvando usuario no secureStorage
       if (user.id != null) {
-        await secureStorage.write(
+        await _secureStorage.write(
           key: "CURRENT_USER",
           value: user.toJson(),
         );
