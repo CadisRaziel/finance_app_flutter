@@ -24,6 +24,6 @@ void setUpDependencies() {
   //sempre que precisarmos de um novo objeto do tipo SignInController nos chamamos ele mesmo
   locator.registerFactory<SignInController>(
       () => SignInController(locator.get<AuthService>()));
-  locator.registerFactory<SignUpController>(
-      () => SignUpController(locator.get<AuthService>()));
+  locator.registerFactory<SignUpController>(() =>
+      SignUpController(locator.get<AuthService>(), const SecureStorage()));
 }
