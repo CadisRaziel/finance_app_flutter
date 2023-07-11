@@ -1,3 +1,5 @@
+import 'package:finance/locator.dart';
+import 'package:finance/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -7,9 +9,9 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClientMixin<ProfilePage> {
-  
-     /*
+class _ProfilePageState extends State<ProfilePage>
+    with AutomaticKeepAliveClientMixin<ProfilePage> {
+  /*
   with AutomaticKeepAliveClientMixin<StatsPage>:
   Imagina que eu tenho um pageView com 4 paginas
   pagina1 - pagina2 - pagina3 - pagina4,
@@ -27,13 +29,21 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
   @override
   bool get wantKeepAlive => true;
 
-
-  
   @override
   Widget build(BuildContext context) {
-    super.build(context); //-> metodo do AutomaticKeepAliveClientMixin    
-    return const Scaffold(
-      body: Center(child: Text("Profile")),
+    super.build(context); //-> metodo do AutomaticKeepAliveClientMixin
+    return  Scaffold(
+      body: Center( 
+          child: Column(
+        children: [
+          TextButton(onPressed: () async {
+            await locator.get<AuthService>().signOut();
+            if(mounted) { //-> se remover a navegação abaixo vai dar um erro de linter, e a ajuda que o dart da é colcoar esse mounted para verificar se a tela ta montada para ter context
+            Navigator.of(context).popUntil(ModalRoute.withName('/'));
+            }
+          }, child: const Text("Sair"))
+        ],
+      )),
     );
   }
 }
