@@ -1,8 +1,12 @@
 import 'dart:developer';
 
+import 'package:finance/core/shared/components/circular_progress_indicator/custom_circular_progress_indicator.dart';
 import 'package:finance/core/shared/constants/app_colors.dart';
 import 'package:finance/core/shared/constants/app_text_style.dart';
 import 'package:finance/core/shared/extensions/sizes.dart';
+import 'package:finance/locator.dart';
+import 'package:finance/view/home/home_controller.dart';
+import 'package:finance/view/home/home_state.dart';
 
 import 'package:flutter/material.dart';
 
@@ -18,10 +22,18 @@ class _HomePageState extends State<HomePage> {
       MediaQuery.of(context).size.width < 360 ? 0.7 : 1.0;
   double get iconSize => MediaQuery.of(context).size.width < 360 ? 16.0 : 24.0;
 
+  //injetando dependencia
+  final controller = locator.get<HomeController>();
+
+  @override
+  void initState() {
+    controller.getAllTransaction();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-   
       body: Stack(
         children: [
           Positioned(
@@ -273,44 +285,78 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 Expanded(
-                  child: ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemCount: 4,
-                      itemBuilder: (context, index) {
-                        final color = index % 2 == 0
-                            ? AppColors.income
-                            : AppColors.outcome;
-                        final value =
-                            index % 2 == 0 ? "+ \$ 100.00" : "- \$ 100.00";
-                        return ListTile(
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 8.0),
-                          leading: Container(
-                            decoration: const BoxDecoration(
-                              color: AppColors.antiFlashWhite,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(8.0),
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(8.0),
-                            child: const Icon(Icons.monetization_on_outlined),
-                          ),
-                          title: const Text(
-                            "Trabalho",
-                            style: AppTextStyle.mediumText16w500,
-                          ),
-                          subtitle: const Text(
-                            "09-07-2023",
-                            style: AppTextStyle.smallText13,
-                          ),
-                          trailing: Text(
-                            value,
-                            style:
-                                AppTextStyle.mediumText18.apply(color: color),
-                          ),
+                  child: AnimatedBuilder(
+                    animation: controller,
+                    builder: (context, child) {
+                      //aqui eu poderia fazer if(snapshot.hasData) / snapshot.erro etc..
+                      if (controller.state is HomeLoadingState) {
+                        return const CustomCircularProgressIndicator(
+                          color: AppColors.darkGreen,
                         );
-                      }),
+                      }
+
+                      if (controller.state is HomeErrorState) {
+                        return const Center(
+                          child: Text("Erro ao carregar as transações",
+                              style: AppTextStyle.mediumText16w500),
+                        );
+                      }
+
+                      if (controller.transactions.isEmpty) {
+                        return const Center(
+                          child: Text("Você não possui transações no momento",
+                              style: AppTextStyle.mediumText16w500),
+                        );
+                      }
+
+                      //!Como o builder do animatedBuilder pede um retorno eu nao posso jogar o sucesso dentro de um if como o debaixo (isso eu ja faço la no controller)
+                      //!Então ele é o unico que não tera esse tratamento aqui
+                      // if (controller.state is HomeSucessState) {}
+                      return ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        itemCount: controller.transactions.length,
+                        itemBuilder: (context, index) {
+                          //preciso atribuir o indice (pra cada item da lista cria um item)
+                          final item = controller.transactions[index];
+
+                          final color = item.value.isNegative
+                              ? AppColors.outcome
+                              : AppColors.income;
+                          final value = "\$ ${item.value.toStringAsFixed(2)}";
+
+                          return ListTile(
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            leading: Container(
+                              decoration: const BoxDecoration(
+                                color: AppColors.antiFlashWhite,
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8.0),
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(8.0),
+                              child: const Icon(Icons.monetization_on_outlined),
+                            ),
+                            title: Text(
+                              item.title,
+                              style: AppTextStyle.mediumText16w500,
+                            ),
+                            subtitle: Text(
+                              DateTime.fromMillisecondsSinceEpoch(item.date)
+                                  .toString(), //-> como no date eu uso milisecondsSinceEpoch, preciso converter pra data
+                              style: AppTextStyle.smallText13,
+                            ),
+                            trailing: Text(
+                              value,
+                              style:
+                                  AppTextStyle.mediumText18.apply(color: color),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 )
               ],
             ),
@@ -320,16 +366,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-class AppCorlos {}
-//final _secureStorage = const SecureStorage();
-// ElevatedButton(
-//           onPressed: () {
-//             _secureStorage.deleteOne(key: "CURRENT_USER").then((_) =>
-//                 Navigator.of(context).popAndPushNamed(NamedRoute.initial));
-
-//             //quando o flutter reclamar o seguinte 'don't use 'BuildContext' across async gaps.' devemos remover o async await e trabalhr com .then
-//             // Navigator.of(context).popAndPushNamed(NamedRoute.initial);
-//           },
-//           child: Text("Sair"),
-//         ),
