@@ -1,5 +1,6 @@
 import 'package:finance/locator.dart';
 import 'package:finance/services/auth_service.dart';
+import 'package:finance/services/secure_storage.dart';
 import 'package:flutter/material.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -38,6 +39,7 @@ class _ProfilePageState extends State<ProfilePage>
         children: [
           TextButton(onPressed: () async {
             await locator.get<AuthService>().signOut();
+            await const SecureStorage().deleteAll(); //-> ao fazer o logout vai limpar tudo
             if(mounted) { //-> se remover a navegação abaixo vai dar um erro de linter, e a ajuda que o dart da é colcoar esse mounted para verificar se a tela ta montada para ter context
             Navigator.of(context).popUntil(ModalRoute.withName('/'));
             }
