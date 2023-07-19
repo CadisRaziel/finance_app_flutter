@@ -2,10 +2,10 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const request = require("graphql-request");
 
-const client = new request.GraphQLClient('https://workable-swift-78.hasura.app/v1/graphql', {
+const client = new request.GraphQLClient('https://concrete-leopard-63.hasura.app/v1/graphql', {
     headers: {
         "content-type": "application/json",
-        "x-hasura-admin-secret": "PX204LRp2nJTKl6kIZmq39zsvbwmM2BvXDHTgia6dk1u5Dey1dTIuw4Y21NK2vbM"
+        "x-hasura-admin-secret": "QXzvjsBmFcSzn7NwSujH8fMFXzNf3jDWLN7sT9Fgj0EkCpY22eu1ja9p0E3EaCac"
     }
 })
 
@@ -86,6 +86,5 @@ exports.processDelete = functions.auth.user().onDelete(async (user) => {
         return data;
     } catch (e) {
         throw new functions.https.HttpsError('sync-failed');
-
     }
 });
