@@ -2,6 +2,7 @@ import 'package:finance/repositories/transaction_repository.dart';
 import 'package:finance/repositories/transaction_repository_impl.dart';
 import 'package:finance/services/auth_service.dart';
 import 'package:finance/services/firebase_auth_service.dart';
+import 'package:finance/services/graphql_service.dart';
 import 'package:finance/services/mock_auth_service_impl.dart';
 import 'package:finance/services/secure_storage.dart';
 import 'package:finance/view/home/home_controller.dart';
@@ -18,7 +19,7 @@ final locator = GetIt.instance;
 void setUpDependencies() {
   //passo 1º a classe abstrata e depois a classe de implementação da abstrata
   //registerLazySingleton -> criar o objeto apenas quando for necessario e não desde o inicio da aplicação
-  locator.registerLazySingleton<AuthService>(() => (FirebaseAuthService()));
+  locator.registerFactory<AuthService>(() => (FirebaseAuthService()));
 
 //como eu deixei o construtor do SecureStorage const é só eu criar um registerFactory
   locator.registerFactory<SplashController>(
@@ -29,8 +30,14 @@ void setUpDependencies() {
   locator.registerFactory<SignInController>(
       () => SignInController(locator.get<AuthService>()));
 
-  locator.registerFactory<SignUpController>(() =>
-      SignUpController(locator.get<AuthService>(), const SecureStorage()));
+  //registerLazySingleton pois eu defini a variavel como late e vai ter o token armazenado na memoria
+  locator.registerLazySingleton<GraphqlService>(
+      () => GraphqlService(authService: locator.get<AuthService>()));
+
+  locator.registerFactory<SignUpController>(() => SignUpController(
+      authService: locator.get<AuthService>(),
+      secureStorage: const SecureStorage(),
+      graphqlService: locator.get<GraphqlService>()));
 
   locator.registerFactory<TransactionRepository>(
       () => TransactionRepositoryImpl());
@@ -38,3 +45,9 @@ void setUpDependencies() {
   locator.registerLazySingleton<HomeController>(
       () => HomeController(locator.get<TransactionRepository>()));
 }
+
+//!Quanto só tem metodo -> registerFactory
+//!Quanto exige que tennha armazenamento na memoria -> registerLazySingleton
+
+//*Lembre-se as dependencias precisam estar em ordem de execução, ou seja se o AuthService ser o ultimo, 
+//*todas as de cima que usa ele vai dar problema porque não vao encontra ele, ele só vai executar depois de todo mundo em cima dele
