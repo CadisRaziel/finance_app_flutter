@@ -76,4 +76,18 @@ class FirebaseAuthService implements AuthService {
       rethrow;
    }
   }
+
+  @override
+  Future<String> userToken() async {
+    try {
+      final token = await _auth.currentUser?.getIdToken();
+      if(token != null){
+        return token;
+      } else {
+        throw Exception("Usuario não encontrado");
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
