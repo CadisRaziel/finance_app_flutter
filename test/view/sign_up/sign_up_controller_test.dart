@@ -10,11 +10,16 @@ void main() {
   late SignUpController signUpController;
   late MockSecureStorage mockSecureStorage;
   late MockFirebaseAuthService mockFirebaseAuthService;
+  late MockGraphqlService mockGraphqlService;
   late UserModel user;
   setUp(() {
     mockFirebaseAuthService = MockFirebaseAuthService();
     mockSecureStorage = MockSecureStorage();
-    signUpController = SignUpController(mockFirebaseAuthService, mockSecureStorage);
+    mockGraphqlService = MockGraphqlService();
+    signUpController = SignUpController(
+        authService: mockFirebaseAuthService,
+        graphqlService: mockGraphqlService,
+        secureStorage: mockSecureStorage);
     user = UserModel(
       name: "User",
       email: "user@hotmail.com",
@@ -25,6 +30,8 @@ void main() {
   test("Test sign up sucess state", () async {
     expect(signUpController.state, isInstanceOf<SignUpInitialState>());
 
+    when(() => mockGraphqlService.init()).thenAnswer((_) async {});
+
     when(
       () => mockSecureStorage.write(
         key: "CURRENT_USER",
@@ -33,14 +40,14 @@ void main() {
     ).thenAnswer((_) async {});
 
     when(
-        () => mockFirebaseAuthService.signUp(
-          name: "User",
-          email: "user@hotmail.com",
-          password: "User@123" ,
-        ),
-      ).thenAnswer(
-        (_) async => user,
-      );
+      () => mockFirebaseAuthService.signUp(
+        name: "User",
+        email: "user@hotmail.com",
+        password: "User@123",
+      ),
+    ).thenAnswer(
+      (_) async => user,
+    );
 
     await signUpController.signUp(
       name: "User",
